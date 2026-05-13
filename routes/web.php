@@ -1,12 +1,28 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Public\ApplicationFormController;
 use App\Http\Controllers\Public\SearchController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', [SearchController::class, 'index'])->name('search');
 Route::get('/search', [SearchController::class, 'results'])->name('search.results');
+
+// Application form
+Route::prefix('apply')->name('apply.')->group(function () {
+    Route::get('/step/1', [ApplicationFormController::class, 'step1'])->name('step1');
+    Route::post('/step/1', [ApplicationFormController::class, 'processStep1'])->name('step1.post');
+    Route::get('/step/2', [ApplicationFormController::class, 'step2'])->name('step2');
+    Route::post('/step/2', [ApplicationFormController::class, 'processStep2'])->name('step2.post');
+    Route::get('/step/3', [ApplicationFormController::class, 'step3'])->name('step3');
+    Route::post('/step/3', [ApplicationFormController::class, 'processStep3'])->name('step3.post');
+    Route::get('/step/4', [ApplicationFormController::class, 'step4'])->name('step4');
+    Route::post('/step/4', [ApplicationFormController::class, 'processStep4'])->name('step4.post');
+    Route::get('/step/5', [ApplicationFormController::class, 'step5'])->name('step5');
+    Route::post('/submit', [ApplicationFormController::class, 'submit'])->name('submit');
+    Route::get('/confirm', [ApplicationFormController::class, 'confirm'])->name('confirm');
+});
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->group(function () {

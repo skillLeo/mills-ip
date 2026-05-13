@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +25,7 @@ class IPAustraliaService
     private function getAccessToken(): string
     {
         return Cache::remember('ip_australia_token', 3540, function () {
-            $response = Http::asForm()->post($this->tokenUrl, [
+            $response = $this->http()->asForm()->post($this->tokenUrl, [
                 'grant_type'    => 'client_credentials',
                 'client_id'     => $this->clientId,
                 'client_secret' => $this->clientSecret,
@@ -41,6 +41,19 @@ class IPAustraliaService
 
             return $response->json('access_token');
         });
+    }
+
+    private function http(?string $token = null): PendingRequest
+    {
+        $request = Http::withOptions([
+            'proxy' => '',
+            'curl' => [
+                CURLOPT_PROXY => '',
+                CURLOPT_NOPROXY => '*',
+            ],
+        ]);
+
+        return $token ? $request->withToken($token) : $request;
     }
 
     public function search(string $query): array
@@ -62,7 +75,7 @@ class IPAustraliaService
             $token = $this->getAccessToken();
 
             // Step 1 - Get list of trademark IDs.
-            $response = Http::withToken($token)->post($this->baseUrl . '/search/quick', [
+            $response = $this->http($token)->post($this->baseUrl . '/search/quick', [
                 'query' => $query,
                 'sort' => [
                     'field' => 'NUMBER',
@@ -89,22 +102,14 @@ class IPAustraliaService
                 return [];
             }
 
-            // Step 2 - Fetch top 8 details concurrently.
+            // Step 2 - Fetch top 8 details.
             $topIds = array_values(array_slice($ids, 0, 8));
 
-            $responses = Http::pool(function (Pool $pool) use ($token, $topIds) {
-                $requests = [];
-                foreach ($topIds as $id) {
-                    $requests[] = $pool->withToken($token)->get($this->baseUrl . '/trade-mark/' . $id);
-                }
-                return $requests;
-            });
-
             $results = [];
-            foreach ($topIds as $idx => $id) {
-                $r = $responses[$idx] ?? null;
-                if ($r && !($r instanceof \Throwable) && $r->successful()) {
-                    $tm = $r->json();
+            foreach ($topIds as $id) {
+                $response = $this->http($token)->get($this->baseUrl . '/trade-mark/' . $id);
+                if ($response->successful()) {
+                    $tm = $response->json();
                     if (is_array($tm)) {
                         $results[] = $this->mapTrademark($tm, $id);
                     }

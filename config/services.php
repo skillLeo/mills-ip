@@ -42,4 +42,8 @@ return [
         'base_url'      => env('IP_AUSTRALIA_BASE_URL'),
     ],
 
+    'mills_ip' => [
+        'notification_email' => env('MILLS_IP_NOTIFICATION_EMAIL', 'admin@millsip.com.au'),
+    ],
+
 ];

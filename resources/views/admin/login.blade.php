@@ -9,14 +9,14 @@
         <a href="{{ route('search') }}" class="login-logo">Mills IP</a>
 
         <div class="login-brand-copy">
-            <span class="admin-eyebrow">Secure team access</span>
-            <h1>Trademark applications, handled in one private workspace.</h1>
-            <p>Phase 1 admin authentication is active and ready for the application management tools coming next.</p>
+            <span class="admin-eyebrow">Mills IP Team Portal</span>
+            <h1>Manage every trademark application in one secure workspace.</h1>
+            <p>Review incoming applications, update statuses, leave internal notes, and maintain a complete audit history — all from one private dashboard.</p>
         </div>
 
         <div class="login-security-list">
             <span>Session protected</span>
-            <span>Dedicated admin guard</span>
+            <span>Private team access only</span>
             <span>No public registration</span>
         </div>
     </section>
