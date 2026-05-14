@@ -81,10 +81,6 @@ class IPAustraliaService
                     'field' => 'NUMBER',
                     'direction' => 'ASCENDING',
                 ],
-                'filters' => [
-                    'quickSearchType' => ['WORD'],
-                    'status' => ['REGISTERED'],
-                ],
             ]);
 
             if ($response->failed()) {
