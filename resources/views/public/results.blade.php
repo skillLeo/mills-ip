@@ -71,7 +71,7 @@
                                     <span>Application in progress</span>
                                 </li>
                                 <li>
-                                    <span class="badge badge-red">Expired</span>
+                                    <span class="badge badge-red">Lapsed / Refused</span>
                                     <span>No longer protected</span>
                                 </li>
                             </ul>
@@ -82,19 +82,29 @@
                     <div class="rp-results">
                         @foreach($results as $tm)
                             @php
-                                $raw = strtolower($tm['status'] ?? '');
-                                $badgeClass = match(true) {
-                                    str_contains($raw, 'register') => 'badge-green',
-                                    str_contains($raw, 'pend') => 'badge-orange',
-                                    str_contains($raw, 'reject') || str_contains($raw, 'expir') => 'badge-red',
-                                    default => 'badge-dim',
+                                $statusKey = strtoupper($tm['status'] ?? '');
+                                $badgeClass = match($statusKey) {
+                                    'REGISTERED'       => 'badge-green',
+                                    'PENDING'          => 'badge-orange',
+                                    'NEVER_REGISTERED',
+                                    'REFUSED',
+                                    'REMOVED'          => 'badge-red',
+                                    default            => 'badge-dim',
+                                };
+                                $statusLabel = match($statusKey) {
+                                    'REGISTERED'       => 'Registered',
+                                    'PENDING'          => 'Pending',
+                                    'NEVER_REGISTERED' => 'Lapsed',
+                                    'REFUSED'          => 'Refused',
+                                    'REMOVED'          => 'Removed',
+                                    default            => ucfirst(strtolower($statusKey)) ?: 'Unknown',
                                 };
                             @endphp
                             <article class="tm-card">
                                 <div class="tm-card-head">
                                     <div class="tm-name-row">
                                         <h2 class="tm-name">{{ $tm['trademark_name'] ?? '—' }}</h2>
-                                        <span class="badge {{ $badgeClass }}">{{ strtoupper($tm['status'] ?? 'Unknown') }}</span>
+                                        <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                                     </div>
                                     @if(!empty($tm['owner']))
                                         <p class="tm-owner">
