@@ -59,7 +59,7 @@ class IPAustraliaService
     public function search(string $query): array
     {
         if (empty($this->clientId) || empty($this->tokenUrl) || empty($this->baseUrl)) {
-            return [];
+            return ['results' => [], 'total' => 0];
         }
 
         $cacheKey = 'ip_au_search_' . md5(strtolower(trim($query)));
@@ -89,34 +89,45 @@ class IPAustraliaService
                     'status' => $response->status(),
                     'body'   => $response->body(),
                 ]);
-                return [];
+                return ['results' => [], 'total' => 0];
             }
 
-            $ids = $this->extractIds($response->json() ?? []);
+            $json  = $response->json() ?? [];
+            $total = (int) ($json['count'] ?? 0);
+            $ids   = $this->extractIds($json);
 
             if (empty($ids)) {
-                return [];
+                return ['results' => [], 'total' => 0];
             }
 
-            // Step 2 - Fetch top 8 details.
-            $topIds = array_values(array_slice($ids, 0, 8));
+            // Step 2 - Fetch all details (capped at 50) using parallel requests.
+            $ids     = array_values(array_slice($ids, 0, 50));
+            $baseUrl = $this->baseUrl;
+
+            $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($ids, $token, $baseUrl) {
+                return array_map(
+                    fn ($id) => $pool->withToken($token)
+                        ->withOptions(['proxy' => '', 'curl' => [CURLOPT_PROXY => '', CURLOPT_NOPROXY => '*']])
+                        ->get($baseUrl . '/trade-mark/' . $id),
+                    $ids
+                );
+            });
 
             $results = [];
-            foreach ($topIds as $id) {
-                $response = $this->http($token)->get($this->baseUrl . '/trade-mark/' . $id);
-                if ($response->successful()) {
-                    $tm = $response->json();
+            foreach ($responses as $index => $tmResponse) {
+                if ($tmResponse->successful()) {
+                    $tm = $tmResponse->json();
                     if (is_array($tm)) {
-                        $results[] = $this->mapTrademark($tm, $id);
+                        $results[] = $this->mapTrademark($tm, $ids[$index]);
                     }
                 }
             }
 
-            return array_values(array_filter($results));
+            return ['results' => array_values(array_filter($results)), 'total' => $total];
 
         } catch (\Exception $e) {
             Log::error('IPAustraliaService error: ' . $e->getMessage());
-            return [];
+            return ['results' => [], 'total' => 0];
         }
     }
 

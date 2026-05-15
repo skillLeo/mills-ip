@@ -22,9 +22,11 @@ class SearchController extends Controller
             'q' => ['required', 'string', 'min:2', 'max:100'],
         ]);
 
-        $query   = trim($request->input('q'));
-        $results = $this->ipAustralia->search($query);
+        $query    = trim($request->input('q'));
+        $data     = $this->ipAustralia->search($query);
+        $results  = $data['results'] ?? [];
+        $total    = $data['total']   ?? count($results);
 
-        return view('public.results', compact('query', 'results'));
+        return view('public.results', compact('query', 'results', 'total'));
     }
 }

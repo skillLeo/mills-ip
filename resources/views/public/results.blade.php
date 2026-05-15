@@ -22,7 +22,11 @@
                     </div>
                     <h1>Results for <em>"{{ $query }}"</em></h1>
                     @if(!isset($apiError) || !$apiError)
-                        <p>{{ count($results) }} {{ Str::plural('record', count($results)) }} found matching your search.</p>
+                        @if(($total ?? count($results)) > count($results))
+                            <p>Showing {{ count($results) }} of {{ $total }} records found — refine your search to narrow results.</p>
+                        @else
+                            <p>{{ count($results) }} {{ Str::plural('record', count($results)) }} found matching your search.</p>
+                        @endif
                     @endif
                 </div>
                 <form action="{{ route('search.results') }}" method="GET" class="rp-search" role="search">
@@ -56,7 +60,7 @@
                     <aside class="rp-sidebar">
                         <div class="rp-summary-card">
                             <div class="rp-summary-label">Search Results</div>
-                            <div class="rp-summary-count">{{ count($results) }}</div>
+                            <div class="rp-summary-count">{{ $total ?? count($results) }}</div>
                             <p>Live matching records for <strong>"{{ $query }}"</strong> from the IP Australia trademark register.</p>
                         </div>
                         <div class="rp-explain-card">
