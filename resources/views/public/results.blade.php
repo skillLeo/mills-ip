@@ -128,7 +128,7 @@
     var wrap   = document.getElementById('rp-load-more-wrap');
     var grid   = document.getElementById('rp-results-grid');
     var shownEl = document.getElementById('rp-shown');
-    var query  = {{ json_encode($query) }};
+    var query  = {!! json_encode($query) !!};
     var page   = 2;
     var loading = false;
 
