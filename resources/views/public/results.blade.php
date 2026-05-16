@@ -22,11 +22,13 @@
                     </div>
                     <h1>Results for <em>"{{ $query }}"</em></h1>
                     @if(!isset($apiError) || !$apiError)
-                        @if(($total ?? count($results)) > count($results))
-                            <p>Showing {{ count($results) }} of {{ $total }} records found — refine your search to narrow results.</p>
-                        @else
-                            <p>{{ count($results) }} {{ Str::plural('record', count($results)) }} found matching your search.</p>
-                        @endif
+                        <p id="rp-count-line">
+                            <strong>{{ $total ?? count($results) }}</strong> records found —
+                            showing <strong><span id="rp-shown">{{ min(20, count($results)) }}</span></strong> of <strong>{{ count($results) }}</strong>
+                            @if(($total ?? 0) > count($results))
+                                <span class="rp-capped-note">(top {{ count($results) }} loaded — refine search for more specific results)</span>
+                            @endif
+                        </p>
                     @endif
                 </div>
                 <form action="{{ route('search.results') }}" method="GET" class="rp-search" role="search">
@@ -84,7 +86,7 @@
                     </aside>
 
                     <div class="rp-results">
-                        @foreach($results as $tm)
+                        @foreach($results as $i => $tm)
                             @php
                                 $statusKey = strtoupper($tm['status'] ?? '');
                                 $badgeClass = match($statusKey) {
@@ -104,7 +106,7 @@
                                     default            => ucfirst(strtolower($statusKey)) ?: 'Unknown',
                                 };
                             @endphp
-                            <article class="tm-card">
+                            <article class="tm-card tm-card-item" data-index="{{ $i }}" @if($i >= 20) style="display:none" @endif>
                                 <div class="tm-card-head">
                                     <div class="tm-name-row">
                                         <h2 class="tm-name">{{ $tm['trademark_name'] ?? '—' }}</h2>
@@ -146,6 +148,15 @@
                             </article>
                         @endforeach
 
+                        @if(count($results) > 20)
+                        <div class="rp-load-more" id="rp-load-more-wrap">
+                            <button class="rp-load-more-btn" id="rp-load-more">
+                                Load More Results
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                        </div>
+                        @endif
+
                         <div class="rp-apply-cta">
                             <div class="rp-apply-left">
                                 <h3>Ready to register <em>"{{ $query }}"</em>?</h3>
@@ -181,5 +192,39 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script>
+(function () {
+    var cards     = document.querySelectorAll('.tm-card-item');
+    var btn       = document.getElementById('rp-load-more');
+    var wrap      = document.getElementById('rp-load-more-wrap');
+    var shownEl   = document.getElementById('rp-shown');
+    var total     = cards.length;
+    var shown     = Math.min(20, total);
+    var batch     = 20;
+
+    if (!btn) return;
+
+    function updateCounter() {
+        if (shownEl) shownEl.textContent = Math.min(shown, total);
+    }
+
+    btn.addEventListener('click', function () {
+        var next = Math.min(shown + batch, total);
+        for (var i = shown; i < next; i++) {
+            cards[i].style.display = '';
+        }
+        shown = next;
+        updateCounter();
+        if (shown >= total) {
+            wrap.style.display = 'none';
+        }
+    });
+
+    updateCounter();
+})();
+</script>
+@endpush
 
 @endsection

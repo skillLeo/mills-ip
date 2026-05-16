@@ -100,8 +100,8 @@ class IPAustraliaService
                 return ['results' => [], 'total' => 0];
             }
 
-            // Step 2 - Fetch all details (capped at 50) using parallel requests.
-            $ids     = array_values(array_slice($ids, 0, 50));
+            // Step 2 - Fetch all details (capped at 100) using parallel requests.
+            $ids     = array_values(array_slice($ids, 0, 100));
             $baseUrl = $this->baseUrl;
 
             $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($ids, $token, $baseUrl) {
