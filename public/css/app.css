@@ -849,6 +849,21 @@ a { color: inherit; text-decoration: none; }
 .tm-fact dt { font-size: 10px; font-weight: 800; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
 .tm-fact dd { font-size: 13px; font-weight: 700; color: var(--ink); font-family: var(--mono); line-height: 1.3; }
 
+/* Results meta bar */
+.rp-meta-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px 20px; background: #fff; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 20px; }
+.rp-meta-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.rp-meta-total { font-weight: 700; color: var(--ink); font-size: 15px; }
+.rp-meta-sep { color: var(--faint); }
+.rp-meta-showing { color: var(--muted); font-size: 13px; }
+.rp-meta-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rp-badge-label { font-size: 12px; color: var(--muted); margin-right: 6px; }
+.rp-capped-note { font-size: 12px; color: var(--muted); font-style: italic; }
+
+/* 2-column results grid */
+.rp-results--grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.rp-results--grid .rp-apply-cta { grid-column: 1 / -1; }
+.rp-results--grid .rp-load-more { grid-column: 1 / -1; }
+
 .rp-load-more { text-align: center; margin: 8px 0 4px; }
 .rp-load-more-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; background: #fff; border: 2px solid var(--line); border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; transition: border-color .18s, color .18s, box-shadow .18s; }
 .rp-load-more-btn:hover { border-color: var(--blue); color: var(--blue); box-shadow: 0 2px 12px rgba(37,99,235,.10); }
@@ -1255,6 +1270,9 @@ a { color: inherit; text-decoration: none; }
     .fnav-next, .fnav-submit { justify-content: center; }
     .owner-grid, .field-cols { grid-template-columns: 1fr; }
     .rp-apply-cta { flex-direction: column; align-items: flex-start; padding: 24px; }
+    .rp-results--grid { grid-template-columns: 1fr; }
+    .rp-meta-bar { flex-direction: column; align-items: flex-start; }
+    .rp-meta-right { display: none; }
     .tm-facts { grid-template-columns: repeat(2, 1fr); }
     .tm-fact { border-right: none; border-bottom: 1px solid var(--line); padding: 12px 0; }
     .tm-fact:last-child { border-bottom: none; }

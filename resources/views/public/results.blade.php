@@ -22,13 +22,7 @@
                     </div>
                     <h1>Results for <em>"{{ $query }}"</em></h1>
                     @if(!isset($apiError) || !$apiError)
-                        <p id="rp-count-line">
-                            <strong>{{ $total ?? count($results) }}</strong> records found —
-                            showing <strong><span id="rp-shown">{{ min(20, count($results)) }}</span></strong> of <strong>{{ count($results) }}</strong>
-                            @if(($total ?? 0) > count($results))
-                                <span class="rp-capped-note">(top {{ count($results) }} loaded — refine search for more specific results)</span>
-                            @endif
-                        </p>
+                        <p>{{ $total ?? count($results) }} {{ Str::plural('record', $total ?? count($results)) }} found</p>
                     @endif
                 </div>
                 <form action="{{ route('search.results') }}" method="GET" class="rp-search" role="search">
@@ -57,35 +51,24 @@
                 </div>
 
             @elseif(count($results) > 0)
-                <div class="rp-layout">
 
-                    <aside class="rp-sidebar">
-                        <div class="rp-summary-card">
-                            <div class="rp-summary-label">Search Results</div>
-                            <div class="rp-summary-count">{{ $total ?? count($results) }}</div>
-                            <p>Live matching records for <strong>"{{ $query }}"</strong> from the IP Australia trademark register.</p>
+                    <div class="rp-meta-bar">
+                        <div class="rp-meta-left">
+                            <span class="rp-meta-total">{{ $total ?? count($results) }} records found</span>
+                            <span class="rp-meta-sep">—</span>
+                            <span class="rp-meta-showing">showing <strong id="rp-shown">{{ min(20, count($results)) }}</strong> of <strong>{{ count($results) }}</strong></span>
+                            @if(($total ?? 0) > count($results))
+                                <span class="rp-capped-note">(top {{ count($results) }} loaded — refine search for more specific results)</span>
+                            @endif
                         </div>
-                        <div class="rp-explain-card">
-                            <h4>What these results mean</h4>
-                            <ul class="rp-explain-list">
-                                <li>
-                                    <span class="badge badge-green">Registered</span>
-                                    <span>Active — potential conflict</span>
-                                </li>
-                                <li>
-                                    <span class="badge badge-orange">Pending</span>
-                                    <span>Application in progress</span>
-                                </li>
-                                <li>
-                                    <span class="badge badge-red">Lapsed / Refused</span>
-                                    <span>No longer protected</span>
-                                </li>
-                            </ul>
-                            <p class="rp-explain-note">Always consult an attorney before filing — similarity can still cause conflicts even when names differ slightly.</p>
+                        <div class="rp-meta-right">
+                            <span class="badge badge-green">Registered</span><span class="rp-badge-label">Active conflict</span>
+                            <span class="badge badge-orange">Pending</span><span class="rp-badge-label">In progress</span>
+                            <span class="badge badge-red">Lapsed</span><span class="rp-badge-label">No longer protected</span>
                         </div>
-                    </aside>
+                    </div>
 
-                    <div class="rp-results">
+                    <div class="rp-results rp-results--grid">
                         @foreach($results as $i => $tm)
                             @php
                                 $statusKey = strtoupper($tm['status'] ?? '');
@@ -168,8 +151,6 @@
                             </a>
                         </div>
                     </div>
-
-                </div>
 
             @else
                 <div class="rp-state-card">
