@@ -55,10 +55,9 @@
                     <div class="rp-meta-bar">
                         <div class="rp-meta-left">
                             <span class="rp-meta-total">{{ $total ?? count($results) }} records found</span>
-                            <span class="rp-meta-sep">—</span>
-                            <span class="rp-meta-showing">showing <strong id="rp-shown">{{ min(20, count($results)) }}</strong> of <strong>{{ count($results) }}</strong></span>
                             @if(($total ?? 0) > count($results))
-                                <span class="rp-capped-note">(top {{ count($results) }} loaded — refine search for more specific results)</span>
+                                <span class="rp-meta-sep">—</span>
+                                <span class="rp-capped-note">top {{ count($results) }} loaded &middot; refine search for more specific results</span>
                             @endif
                         </div>
                         <div class="rp-meta-right">
@@ -142,6 +141,7 @@
 
                         @if(count($results) > 20)
                         <div class="rp-load-more" id="rp-load-more-wrap">
+                            <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ min(20, count($results)) }}</strong> of <strong>{{ count($results) }}</strong></span>
                             <button class="rp-load-more-btn" id="rp-load-more">
                                 Load More Results
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
