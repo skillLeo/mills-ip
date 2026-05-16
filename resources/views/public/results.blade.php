@@ -52,52 +52,84 @@
 
             @elseif(count($results) > 0)
 
-                <div class="rp-meta-bar">
-                    <div class="rp-meta-left">
-                        <span class="rp-meta-total">{{ $total ?? count($results) }} records found</span>
-                    </div>
-                    <div class="rp-meta-right">
-                        <div class="rp-meta-key-item">
-                            <span class="badge badge-green">Registered</span>
-                            <span class="rp-badge-label">Active conflict</span>
-                        </div>
-                        <div class="rp-meta-key-item">
-                            <span class="badge badge-orange">Pending</span>
-                            <span class="rp-badge-label">In progress</span>
-                        </div>
-                        <div class="rp-meta-key-item">
-                            <span class="badge badge-red">Lapsed</span>
-                            <span class="rp-badge-label">No longer protected</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="rp-layout">
 
-                <div class="rp-results rp-results--grid" id="rp-results-grid">
-                    @foreach($results as $tm)
-                        @include('public._tm_card', ['tm' => $tm])
-                    @endforeach
+                    {{-- ─── Left Sidebar ─── --}}
+                    <aside class="rp-sidebar">
 
-                    @if($hasMore)
-                    <div class="rp-load-more" id="rp-load-more-wrap">
-                        <button class="rp-load-more-btn" id="rp-load-more">
-                            Load More Results
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </button>
-                        <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ $loaded }}</strong> of <strong id="rp-total">{{ $total }}</strong></span>
-                    </div>
-                    @endif
-
-                    <div class="rp-apply-cta">
-                        <div class="rp-apply-left">
-                            <h3>Ready to register <em>"{{ $query }}"</em>?</h3>
-                            <p>A Mills IP attorney will review your application and provide a fixed fee quote within one business day. No payment required to apply.</p>
+                        <div class="rp-summary-card">
+                            <p class="rp-summary-label">Search Results</p>
+                            <div class="rp-summary-count" id="rp-sidebar-count">{{ $total ?? count($results) }}</div>
+                            <p>Trademarks found matching <strong>"{{ $query }}"</strong> in the IP Australia live database.</p>
                         </div>
-                        <a href="{{ route('apply.step1') }}?brand={{ urlencode($query) }}" class="btn-solid-white">
-                            Apply for "{{ Str::limit($query, 20) }}"
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </a>
-                    </div>
-                </div>
+
+                        <div class="rp-explain-card">
+                            <h4>What these results mean</h4>
+                            <ul class="rp-explain-list">
+                                <li>
+                                    <span class="badge badge-green">Registered</span>
+                                    Active conflict — may block your application
+                                </li>
+                                <li>
+                                    <span class="badge badge-orange">Pending</span>
+                                    Application in progress
+                                </li>
+                                <li>
+                                    <span class="badge badge-red">Lapsed</span>
+                                    No longer protected
+                                </li>
+                            </ul>
+                            <p class="rp-explain-note">These results are for reference only. Always consult a qualified IP attorney before filing.</p>
+                        </div>
+
+                    </aside>
+
+                    {{-- ─── Right: Results ─── --}}
+                    <div class="rp-main">
+
+                        <div class="rp-disclaimer-bar">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <span>This is not a formal clearance search. Results may help identify obvious conflicts that could pose difficulties when applying for a trade mark. Always consult a qualified attorney before filing.</span>
+                        </div>
+
+                        <div class="rp-expired-bar" id="rp-expired-bar" style="display:none">
+                            <div class="rp-expired-left">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                <span><strong id="rp-expired-count">0</strong> expired &amp; lapsed marks are hidden</span>
+                            </div>
+                            <button class="rp-expired-btn" id="rp-expired-toggle">Show expired marks</button>
+                        </div>
+
+                        <div class="rp-results rp-results--grid" id="rp-results-grid">
+                            @foreach($results as $tm)
+                                @include('public._tm_card', ['tm' => $tm])
+                            @endforeach
+
+                            @if($hasMore)
+                            <div class="rp-load-more" id="rp-load-more-wrap">
+                                <button class="rp-load-more-btn" id="rp-load-more">
+                                    Load More Results
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </button>
+                                <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ $loaded }}</strong> of <strong id="rp-total">{{ $total }}</strong></span>
+                            </div>
+                            @endif
+
+                            <div class="rp-apply-cta">
+                                <div class="rp-apply-left">
+                                    <h3>Ready to register <em>"{{ $query }}"</em>?</h3>
+                                    <p>A Mills IP attorney will review your application and provide a fixed fee quote within one business day. No payment required to apply.</p>
+                                </div>
+                                <a href="{{ route('apply.step1') }}?brand={{ urlencode($query) }}" class="btn-solid-white">
+                                    Apply for "{{ Str::limit($query, 20) }}"
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>{{-- end .rp-main --}}
+
+                </div>{{-- end .rp-layout --}}
 
             @else
                 <div class="rp-state-card">
@@ -124,49 +156,81 @@
 @push('scripts')
 <script>
 (function () {
-    var btn    = document.getElementById('rp-load-more');
-    var wrap   = document.getElementById('rp-load-more-wrap');
-    var grid   = document.getElementById('rp-results-grid');
-    var shownEl = document.getElementById('rp-shown');
-    var query  = {!! json_encode($query) !!};
-    var page   = 2;
-    var loading = false;
+    var btn           = document.getElementById('rp-load-more');
+    var wrap          = document.getElementById('rp-load-more-wrap');
+    var grid          = document.getElementById('rp-results-grid');
+    var shownEl       = document.getElementById('rp-shown');
+    var expiredBar    = document.getElementById('rp-expired-bar');
+    var expiredCount  = document.getElementById('rp-expired-count');
+    var expiredToggle = document.getElementById('rp-expired-toggle');
+    var query         = {!! json_encode($query) !!};
+    var page          = 2;
+    var loading       = false;
+    var showExpired   = false;
 
-    if (!btn) return;
-
-    btn.addEventListener('click', function () {
-        if (loading) return;
-        loading = true;
-        btn.disabled = true;
-        btn.innerHTML = 'Loading... <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="rp-spin"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-
-        fetch('/search/more?q=' + encodeURIComponent(query) + '&page=' + page, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-            var temp = document.createElement('div');
-            temp.innerHTML = data.html;
-            while (temp.firstChild) {
-                grid.insertBefore(temp.firstChild, wrap);
+    // Hide expired/lapsed marks and update the notice bar
+    function applyFilter() {
+        var cards = document.querySelectorAll('.tm-card-item');
+        var hidden = 0;
+        cards.forEach(function (card) {
+            if (card.querySelector('.badge-red')) {
+                card.style.display = showExpired ? '' : 'none';
+                if (!showExpired) hidden++;
             }
-            if (shownEl) shownEl.textContent = data.loaded;
-            page++;
-            loading = false;
-            btn.disabled = false;
-
-            if (!data.hasMore) {
-                wrap.style.display = 'none';
-            } else {
-                btn.innerHTML = 'Load More Results <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-            }
-        })
-        .catch(function () {
-            loading = false;
-            btn.disabled = false;
-            btn.innerHTML = 'Load More Results <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
         });
-    });
+        if (expiredCount) expiredCount.textContent = hidden;
+        if (expiredBar)   expiredBar.style.display = hidden > 0 ? 'flex' : (showExpired ? 'flex' : 'none');
+        if (expiredToggle) expiredToggle.textContent = showExpired ? 'Hide expired marks' : 'Show expired marks';
+    }
+
+    // Toggle expired marks
+    if (expiredToggle) {
+        expiredToggle.addEventListener('click', function () {
+            showExpired = !showExpired;
+            applyFilter();
+        });
+    }
+
+    // Load More
+    if (btn) {
+        btn.addEventListener('click', function () {
+            if (loading) return;
+            loading = true;
+            btn.disabled = true;
+            btn.innerHTML = 'Loading... <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+            fetch('/search/more?q=' + encodeURIComponent(query) + '&page=' + page, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var temp = document.createElement('div');
+                temp.innerHTML = data.html;
+                while (temp.firstChild) {
+                    grid.insertBefore(temp.firstChild, wrap);
+                }
+                if (shownEl) shownEl.textContent = data.loaded;
+                page++;
+                loading = false;
+                btn.disabled = false;
+                applyFilter();
+
+                if (!data.hasMore) {
+                    wrap.style.display = 'none';
+                } else {
+                    btn.innerHTML = 'Load More Results <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+                }
+            })
+            .catch(function () {
+                loading = false;
+                btn.disabled = false;
+                btn.innerHTML = 'Load More Results <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+            });
+        });
+    }
+
+    // Apply filter on first load
+    applyFilter();
 })();
 </script>
 @endpush
