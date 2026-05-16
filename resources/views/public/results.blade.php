@@ -141,11 +141,11 @@
 
                         @if(count($results) > 20)
                         <div class="rp-load-more" id="rp-load-more-wrap">
-                            <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ min(20, count($results)) }}</strong> of <strong>{{ count($results) }}</strong></span>
                             <button class="rp-load-more-btn" id="rp-load-more">
                                 Load More Results
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
                             </button>
+                            <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ min(20, count($results)) }}</strong> of <strong>{{ count($results) }}</strong></span>
                         </div>
                         @endif
 
