@@ -52,114 +52,52 @@
 
             @elseif(count($results) > 0)
 
-                    <div class="rp-meta-bar">
-                        <div class="rp-meta-left">
-                            <span class="rp-meta-total">{{ $total ?? count($results) }} records found</span>
-                            @if(($total ?? 0) > count($results))
-                                <span class="rp-meta-sep">—</span>
-                                <span class="rp-capped-note">top {{ count($results) }} loaded &middot; refine search for more specific results</span>
-                            @endif
+                <div class="rp-meta-bar">
+                    <div class="rp-meta-left">
+                        <span class="rp-meta-total">{{ $total ?? count($results) }} records found</span>
+                    </div>
+                    <div class="rp-meta-right">
+                        <div class="rp-meta-key-item">
+                            <span class="badge badge-green">Registered</span>
+                            <span class="rp-badge-label">Active conflict</span>
                         </div>
-                        <div class="rp-meta-right">
-                            <div class="rp-meta-key-item">
-                                <span class="badge badge-green">Registered</span>
-                                <span class="rp-badge-label">Active conflict</span>
-                            </div>
-                            <div class="rp-meta-key-item">
-                                <span class="badge badge-orange">Pending</span>
-                                <span class="rp-badge-label">In progress</span>
-                            </div>
-                            <div class="rp-meta-key-item">
-                                <span class="badge badge-red">Lapsed</span>
-                                <span class="rp-badge-label">No longer protected</span>
-                            </div>
+                        <div class="rp-meta-key-item">
+                            <span class="badge badge-orange">Pending</span>
+                            <span class="rp-badge-label">In progress</span>
+                        </div>
+                        <div class="rp-meta-key-item">
+                            <span class="badge badge-red">Lapsed</span>
+                            <span class="rp-badge-label">No longer protected</span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="rp-results rp-results--grid">
-                        @foreach($results as $i => $tm)
-                            @php
-                                $statusKey = strtoupper($tm['status'] ?? '');
-                                $badgeClass = match($statusKey) {
-                                    'REGISTERED'       => 'badge-green',
-                                    'PENDING'          => 'badge-orange',
-                                    'NEVER_REGISTERED',
-                                    'REFUSED',
-                                    'REMOVED'          => 'badge-red',
-                                    default            => 'badge-dim',
-                                };
-                                $statusLabel = match($statusKey) {
-                                    'REGISTERED'       => 'Registered',
-                                    'PENDING'          => 'Pending',
-                                    'NEVER_REGISTERED' => 'Lapsed',
-                                    'REFUSED'          => 'Refused',
-                                    'REMOVED'          => 'Removed',
-                                    default            => ucfirst(strtolower($statusKey)) ?: 'Unknown',
-                                };
-                            @endphp
-                            <article class="tm-card tm-card-item" data-index="{{ $i }}" @if($i >= 20) style="display:none" @endif>
-                                <div class="tm-card-head">
-                                    <div class="tm-name-row">
-                                        <h2 class="tm-name">{{ $tm['trademark_name'] ?? '—' }}</h2>
-                                        <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
-                                    </div>
-                                    @if(!empty($tm['owner']))
-                                        <p class="tm-owner">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                            {{ $tm['owner'] }}
-                                        </p>
-                                    @endif
-                                </div>
-                                <dl class="tm-facts">
-                                    @if(!empty($tm['trademark_number']))
-                                        <div class="tm-fact">
-                                            <dt>Number</dt>
-                                            <dd>{{ $tm['trademark_number'] }}</dd>
-                                        </div>
-                                    @endif
-                                    @if(!empty($tm['class']))
-                                        <div class="tm-fact">
-                                            <dt>Class</dt>
-                                            <dd>{{ $tm['class'] }}</dd>
-                                        </div>
-                                    @endif
-                                    @if(!empty($tm['application_date']))
-                                        <div class="tm-fact">
-                                            <dt>Filed</dt>
-                                            <dd>{{ $tm['application_date'] }}</dd>
-                                        </div>
-                                    @endif
-                                    @if(!empty($tm['registration_date']))
-                                        <div class="tm-fact">
-                                            <dt>Registered</dt>
-                                            <dd>{{ $tm['registration_date'] }}</dd>
-                                        </div>
-                                    @endif
-                                </dl>
-                            </article>
-                        @endforeach
+                <div class="rp-results rp-results--grid" id="rp-results-grid">
+                    @foreach($results as $tm)
+                        @include('public._tm_card', ['tm' => $tm])
+                    @endforeach
 
-                        @if(count($results) > 20)
-                        <div class="rp-load-more" id="rp-load-more-wrap">
-                            <button class="rp-load-more-btn" id="rp-load-more">
-                                Load More Results
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                            </button>
-                            <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ min(20, count($results)) }}</strong> of <strong>{{ count($results) }}</strong></span>
-                        </div>
-                        @endif
-
-                        <div class="rp-apply-cta">
-                            <div class="rp-apply-left">
-                                <h3>Ready to register <em>"{{ $query }}"</em>?</h3>
-                                <p>A Mills IP attorney will review your application and provide a fixed fee quote within one business day. No payment required to apply.</p>
-                            </div>
-                            <a href="{{ route('apply.step1') }}?brand={{ urlencode($query) }}" class="btn-solid-white">
-                                Apply for "{{ Str::limit($query, 20) }}"
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                            </a>
-                        </div>
+                    @if($hasMore)
+                    <div class="rp-load-more" id="rp-load-more-wrap">
+                        <button class="rp-load-more-btn" id="rp-load-more">
+                            Load More Results
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <span class="rp-load-more-count">Showing <strong id="rp-shown">{{ $loaded }}</strong> of <strong id="rp-total">{{ $total }}</strong></span>
                     </div>
+                    @endif
+
+                    <div class="rp-apply-cta">
+                        <div class="rp-apply-left">
+                            <h3>Ready to register <em>"{{ $query }}"</em>?</h3>
+                            <p>A Mills IP attorney will review your application and provide a fixed fee quote within one business day. No payment required to apply.</p>
+                        </div>
+                        <a href="{{ route('apply.step1') }}?brand={{ urlencode($query) }}" class="btn-solid-white">
+                            Apply for "{{ Str::limit($query, 20) }}"
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
 
             @else
                 <div class="rp-state-card">
@@ -171,9 +109,9 @@
                     <div class="rp-state-actions">
                         <a href="{{ route('search') }}" class="btn-outline">Search Another Name</a>
                         <a href="{{ route('apply.step1') }}?brand={{ urlencode($query) }}" class="btn-solid">
-                        Apply for "{{ $query }}"
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </a>
+                            Apply for "{{ $query }}"
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
                     </div>
                 </div>
             @endif
@@ -186,33 +124,49 @@
 @push('scripts')
 <script>
 (function () {
-    var cards     = document.querySelectorAll('.tm-card-item');
-    var btn       = document.getElementById('rp-load-more');
-    var wrap      = document.getElementById('rp-load-more-wrap');
-    var shownEl   = document.getElementById('rp-shown');
-    var total     = cards.length;
-    var shown     = Math.min(20, total);
-    var batch     = 20;
+    var btn    = document.getElementById('rp-load-more');
+    var wrap   = document.getElementById('rp-load-more-wrap');
+    var grid   = document.getElementById('rp-results-grid');
+    var shownEl = document.getElementById('rp-shown');
+    var query  = {{ json_encode($query) }};
+    var page   = 2;
+    var loading = false;
 
     if (!btn) return;
 
-    function updateCounter() {
-        if (shownEl) shownEl.textContent = Math.min(shown, total);
-    }
-
     btn.addEventListener('click', function () {
-        var next = Math.min(shown + batch, total);
-        for (var i = shown; i < next; i++) {
-            cards[i].style.display = '';
-        }
-        shown = next;
-        updateCounter();
-        if (shown >= total) {
-            wrap.style.display = 'none';
-        }
-    });
+        if (loading) return;
+        loading = true;
+        btn.disabled = true;
+        btn.innerHTML = 'Loading... <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="rp-spin"><polyline points="6 9 12 15 18 9"></polyline></svg>';
 
-    updateCounter();
+        fetch('/search/more?q=' + encodeURIComponent(query) + '&page=' + page, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var temp = document.createElement('div');
+            temp.innerHTML = data.html;
+            while (temp.firstChild) {
+                grid.insertBefore(temp.firstChild, wrap);
+            }
+            if (shownEl) shownEl.textContent = data.loaded;
+            page++;
+            loading = false;
+            btn.disabled = false;
+
+            if (!data.hasMore) {
+                wrap.style.display = 'none';
+            } else {
+                btn.innerHTML = 'Load More Results <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+            }
+        })
+        .catch(function () {
+            loading = false;
+            btn.disabled = false;
+            btn.innerHTML = 'Load More Results <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+        });
+    });
 })();
 </script>
 @endpush

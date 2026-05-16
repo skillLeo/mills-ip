@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class IPAustraliaService
 {
+    private const PER_PAGE   = 20;
+    private const CACHE_TTL  = 600;
+
     private string $clientId;
     private string $clientSecret;
     private string $tokenUrl;
@@ -47,40 +50,35 @@ class IPAustraliaService
     {
         $request = Http::withOptions([
             'proxy' => '',
-            'curl' => [
-                CURLOPT_PROXY => '',
-                CURLOPT_NOPROXY => '*',
-            ],
+            'curl'  => [CURLOPT_PROXY => '', CURLOPT_NOPROXY => '*'],
         ]);
 
         return $token ? $request->withToken($token) : $request;
     }
 
+    // ── First page search ────────────────────────────────────────────────────
+
     public function search(string $query): array
     {
         if (empty($this->clientId) || empty($this->tokenUrl) || empty($this->baseUrl)) {
-            return ['results' => [], 'total' => 0];
+            return $this->emptyResult();
         }
 
-        $cacheKey = 'ip_au_search_' . md5(strtolower(trim($query)));
+        $cacheKey = 'ip_au_p1_' . md5(strtolower(trim($query)));
 
-        return Cache::remember($cacheKey, 600, function () use ($query) {
-            return $this->fetchFromApi($query);
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($query) {
+            return $this->fetchFirstPage($query);
         });
     }
 
-    private function fetchFromApi(string $query): array
+    private function fetchFirstPage(string $query): array
     {
         try {
             $token = $this->getAccessToken();
 
-            // Step 1 - Get list of trademark IDs.
             $response = $this->http($token)->post($this->baseUrl . '/search/quick', [
                 'query' => $query,
-                'sort' => [
-                    'field' => 'NUMBER',
-                    'direction' => 'ASCENDING',
-                ],
+                'sort'  => ['field' => 'NUMBER', 'direction' => 'ASCENDING'],
             ]);
 
             if ($response->failed()) {
@@ -89,46 +87,107 @@ class IPAustraliaService
                     'status' => $response->status(),
                     'body'   => $response->body(),
                 ]);
-                return ['results' => [], 'total' => 0];
+                return $this->emptyResult();
             }
 
             $json  = $response->json() ?? [];
-            $total = (int) ($json['count'] ?? 0);
             $ids   = $this->extractIds($json);
+            $total = count($ids);
 
             if (empty($ids)) {
-                return ['results' => [], 'total' => 0];
+                return $this->emptyResult();
             }
 
-            // Step 2 - Fetch all details (capped at 100) using parallel requests.
-            $ids     = array_values(array_slice($ids, 0, 100));
-            $baseUrl = $this->baseUrl;
+            // Cache all IDs for subsequent pages
+            Cache::put('ip_au_ids_' . md5(strtolower(trim($query))), $ids, self::CACHE_TTL);
 
-            $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($ids, $token, $baseUrl) {
-                return array_map(
-                    fn ($id) => $pool->withToken($token)
-                        ->withOptions(['proxy' => '', 'curl' => [CURLOPT_PROXY => '', CURLOPT_NOPROXY => '*']])
-                        ->get($baseUrl . '/trade-mark/' . $id),
-                    $ids
-                );
-            });
+            $firstBatch = array_values(array_slice($ids, 0, self::PER_PAGE));
+            $results    = $this->fetchDetails($token, $firstBatch);
 
-            $results = [];
-            foreach ($responses as $index => $tmResponse) {
-                if ($tmResponse->successful()) {
-                    $tm = $tmResponse->json();
-                    if (is_array($tm)) {
-                        $results[] = $this->mapTrademark($tm, $ids[$index]);
-                    }
-                }
-            }
-
-            return ['results' => array_values(array_filter($results)), 'total' => $total];
+            return [
+                'results' => $results,
+                'total'   => $total,
+                'loaded'  => count($results),
+                'hasMore' => count($results) < $total,
+            ];
 
         } catch (\Exception $e) {
             Log::error('IPAustraliaService error: ' . $e->getMessage());
-            return ['results' => [], 'total' => 0];
+            return $this->emptyResult();
         }
+    }
+
+    // ── Subsequent pages (AJAX) ──────────────────────────────────────────────
+
+    public function searchPage(string $query, int $page): array
+    {
+        if (empty($this->clientId) || empty($this->tokenUrl) || empty($this->baseUrl)) {
+            return $this->emptyResult();
+        }
+
+        $ids = Cache::get('ip_au_ids_' . md5(strtolower(trim($query))), []);
+
+        if (empty($ids)) {
+            return $this->emptyResult();
+        }
+
+        $total  = count($ids);
+        $offset = ($page - 1) * self::PER_PAGE;
+        $slice  = array_values(array_slice($ids, $offset, self::PER_PAGE));
+
+        if (empty($slice)) {
+            return ['results' => [], 'total' => $total, 'loaded' => $total, 'hasMore' => false];
+        }
+
+        try {
+            $token   = $this->getAccessToken();
+            $results = $this->fetchDetails($token, $slice);
+            $loaded  = $offset + count($results);
+
+            return [
+                'results' => $results,
+                'total'   => $total,
+                'loaded'  => $loaded,
+                'hasMore' => $loaded < $total,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('IPAustraliaService searchPage error: ' . $e->getMessage());
+            return $this->emptyResult();
+        }
+    }
+
+    // ── Shared helpers ───────────────────────────────────────────────────────
+
+    private function fetchDetails(string $token, array $ids): array
+    {
+        $baseUrl = $this->baseUrl;
+
+        $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($ids, $token, $baseUrl) {
+            return array_map(
+                fn ($id) => $pool->withToken($token)
+                    ->withOptions(['proxy' => '', 'curl' => [CURLOPT_PROXY => '', CURLOPT_NOPROXY => '*']])
+                    ->get($baseUrl . '/trade-mark/' . $id),
+                $ids
+            );
+        });
+
+        $results = [];
+        foreach ($responses as $index => $response) {
+            if ($response->successful()) {
+                $tm = $response->json();
+                if (is_array($tm)) {
+                    $results[] = $this->mapTrademark($tm, $ids[$index]);
+                }
+            }
+        }
+
+        return array_values(array_filter($results));
+    }
+
+    private function emptyResult(): array
+    {
+        return ['results' => [], 'total' => 0, 'loaded' => 0, 'hasMore' => false];
     }
 
     private function extractIds(array $data): array
@@ -162,13 +221,12 @@ class IPAustraliaService
         $name = !empty($tm['words']) ? implode(' ', (array) $tm['words']) : ($tm['name'] ?? '');
 
         return [
-            'trademark_number'  => $tm['number']              ?? $id,
+            'trademark_number'  => $tm['number']               ?? $id,
             'trademark_name'    => strtoupper($name),
-            'status'            => $tm['statusGroup']          ?? $tm['statusCode']       ?? '',
+            'status'            => $tm['statusGroup']           ?? $tm['statusCode']        ?? '',
             'owner'             => $this->extractOwner($tm),
             'class'             => $this->extractClasses($tm),
-            'class_description' => '',
-            'application_date'  => $tm['filingDate']           ?? $tm['lodgementDate']    ?? '',
+            'application_date'  => $tm['filingDate']            ?? $tm['lodgementDate']     ?? '',
             'registration_date' => $tm['enteredOnRegisterDate'] ?? $tm['registeredFromDate'] ?? '',
         ];
     }

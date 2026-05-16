@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::get('/', [SearchController::class, 'index'])->name('search');
 Route::get('/search', [SearchController::class, 'results'])->name('search.results');
+Route::get('/search/more', [SearchController::class, 'loadMore'])->name('search.more');
 
 // Application form
 Route::prefix('apply')->name('apply.')->group(function () {
