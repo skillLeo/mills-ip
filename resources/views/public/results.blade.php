@@ -62,9 +62,18 @@
                             @endif
                         </div>
                         <div class="rp-meta-right">
-                            <span class="badge badge-green">Registered</span><span class="rp-badge-label">Active conflict</span>
-                            <span class="badge badge-orange">Pending</span><span class="rp-badge-label">In progress</span>
-                            <span class="badge badge-red">Lapsed</span><span class="rp-badge-label">No longer protected</span>
+                            <div class="rp-meta-key-item">
+                                <span class="badge badge-green">Registered</span>
+                                <span class="rp-badge-label">Active conflict</span>
+                            </div>
+                            <div class="rp-meta-key-item">
+                                <span class="badge badge-orange">Pending</span>
+                                <span class="rp-badge-label">In progress</span>
+                            </div>
+                            <div class="rp-meta-key-item">
+                                <span class="badge badge-red">Lapsed</span>
+                                <span class="rp-badge-label">No longer protected</span>
+                            </div>
                         </div>
                     </div>
 
