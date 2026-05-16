@@ -1296,6 +1296,8 @@ a { color: inherit; text-decoration: none; }
     .fnav-next, .fnav-submit { justify-content: center; }
     .owner-grid, .field-cols { grid-template-columns: 1fr; }
     .rp-apply-cta { flex-direction: column; align-items: flex-start; padding: 24px; }
+    .rp-load-more { flex-direction: column; gap: 8px; }
+    .rp-load-more-count { position: static; }
     .rp-meta-bar { flex-direction: column; align-items: flex-start; }
     .rp-meta-right { display: none; }
     .tm-facts { grid-template-columns: repeat(2, 1fr); }
