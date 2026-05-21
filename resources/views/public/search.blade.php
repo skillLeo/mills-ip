@@ -15,7 +15,9 @@
             Live IP Australia Database
         </div>
 
-        <h1>Search Australia's<br>Trademark Register.</h1>
+        <h1>Protect Your Brand<br>the Easy Way</h1>
+
+        <p class="hero-sub-tagline">Create &nbsp;&middot;&nbsp; Secure &nbsp;&middot;&nbsp; Maintain</p>
 
         <p class="hero-lead">
             Before you apply, check whether your brand name is already registered — free, instant, and pulled directly from the official Australian government database.

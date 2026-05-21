@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="@yield('meta_description', 'Search the official IP Australia trademark database in real time. Mills IP — Australian trademark attorneys.')">
-    <title>@yield('title', 'Mills IP') | Australian Trademark Attorneys</title>
+    <meta name="description" content="@yield('meta_description', 'Search the official IP Australia trademark database in real time. TM.com.au — Trademarks and Brand Protection.')">
+    <title>@yield('title', 'TM.com.au') | Trademarks and Brand Protection</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,9 @@
 
 <nav class="site-nav" role="navigation" aria-label="Main navigation">
     <div class="container nav-inner">
-        <a href="{{ route('search') }}" class="nav-logo">Mills IP</a>
+        <a href="{{ route('search') }}" class="nav-logo">
+            <img src="{{ asset('images/logo.jpeg') }}" alt="TM.com.au" class="nav-logo-img">
+        </a>
         <div class="nav-links" id="nav-links">
             <a href="{{ route('search') }}" class="nav-link">Search Trademarks</a>
             <a href="{{ route('search') }}#how-it-works" class="nav-link">How It Works</a>
@@ -50,8 +52,10 @@
     <div class="footer-main">
         <div class="container footer-grid">
             <div class="footer-brand">
-                <a href="{{ route('search') }}" class="footer-logo">Mills IP</a>
-                <p class="footer-tagline">Australian trademark attorneys helping businesses and individuals protect their brands — from search to registration.</p>
+                <a href="{{ route('search') }}" class="footer-logo">
+                    <img src="{{ asset('images/logo.jpeg') }}" alt="TM.com.au" class="footer-logo-img">
+                </a>
+                <p class="footer-tagline">Trademarks and Brand Protection. Search the official IP Australia database and apply for trademark registration with expert attorney support.</p>
                 <div class="footer-badges">
                     <span>IP Australia Registered</span>
                     <span>Australian Attorneys</span>
@@ -85,8 +89,8 @@
     </div>
     <div class="footer-bar">
         <div class="container footer-bar-inner">
-            <p>&copy; {{ date('Y') }} Mills IP Pty Ltd. All rights reserved.</p>
-            <p>Australian Trademark Attorneys &middot; IP Australia Official Database</p>
+            <p>&copy; {{ date('Y') }} TM.com.au. All rights reserved.</p>
+            <p>Legal services provided by Mills IP, ABN 44 120 677 429. Liability limited by a scheme approved under Professional Standards Legislation.</p>
         </div>
     </div>
 </footer>
